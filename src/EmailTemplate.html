@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSL Labs Report</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+<h3>SSL Labs Report</h3>
+<p>Total number of domains scanned: {{domain_total}}</p>
+<p>Number of domains successfully scanned: {{domain_success}}</p>
+<p>Total number of domain scans failed: {{domain_failed}}</p>
+<h4>Results:</h4>
+
+<table >
+    <tr>
+        <th>Domain</th>
+        <th>Grade</th>
+    </tr>
+    {% for keys in domain_results.keys() %}
+    <tr>
+        <th>{{key}}</th>
+        <th>{{domain_results[key]}}</th>
+    </tr>
+    {% endfor %}
+</table>
+
+<h4>Failed domains</h4>
+<ul>
+    {% for d in domain_list_failed %}
+    <li>{{d}}</li>
+    {% endfor %}
+</ul>
+
+</body>
+</html>
