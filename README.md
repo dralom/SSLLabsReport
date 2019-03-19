@@ -16,10 +16,9 @@ Dockerfile configuration.
 ### Configuration
 
 Environment variables required:
-* SMTPSERVER - SMTP Server address
-* SMTPPORT - SMTP Server port
-* SMTPUSER - [optional] SMTP Server username (if required)
-* SMTPPASSWORD - [optional] SMTP Server password (if required)
-* SMTPORIGIN - The 'From' email address
-* SMTPDESTINATION - The 'To' email address
-
+* `SMTPSERVER` - SMTP Server address
+* `SMTPPORT` - SMTP Server port
+* `SMTPUSER` - [optional] SMTP Server username (if required)
+* `SMTPPASSWORD` - [optional] SMTP Server password (if required)
+* `SMTPORIGIN` - The 'From' email address
+* `SMTPDESTINATION` - The 'To' email address
