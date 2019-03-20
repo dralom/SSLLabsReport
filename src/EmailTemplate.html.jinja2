@@ -23,7 +23,7 @@
     </tr>
     {% for key in domain_results.keys() %}
     <tr>
-        <th>{{key}}</th>
+        <th><a href="{{domain_lookup[key]}}">{{key}}</a></th>
         <th>{{domain_results[key]}}</th>
     </tr>
     {% endfor %}

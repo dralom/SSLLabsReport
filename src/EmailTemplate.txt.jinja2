@@ -6,7 +6,7 @@ Total number of domain scans failed: {{domain_failed}}
 
 Results:
 {% for key in domain_results.keys() %}
-{{key}} - {{domain_results[key]}}
+{{key}} - {{domain_results[key]}} - Details: {{domain_lookup[key]}}
 {% endfor %}
 
 Failed domains:

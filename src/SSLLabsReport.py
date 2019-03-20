@@ -83,6 +83,11 @@ domains = [x.strip() for x in lines]
 full_results = {}
 domains_complete = []
 domains_failed = []
+domains_lookup = {}
+
+for domain in domains:
+    domain_http_lookup = "https://www.ssllabs.com/ssltest/analyze.html?d={}&hideResults=on".format(domain)
+    domains_lookup[domain] = domain_http_lookup
 
 for domain in domains:
     lg.info("Initiating scan for domain: {}".format(domain))
@@ -108,16 +113,23 @@ for domain in domains:
         lg.exception(message)
         domains_failed.append(domain)
     else:
-        lg.info("Current status is {}, progress is {}".format(result['status'],
-                                                              result['endpoints'][0]['progress']))
+        if 'endpoints' in result.keys():
+            lg.info("Current status is {}, progress is {}".format(result['status'],
+                                                                  result['endpoints'][0]['progress']))
+        else:
+            lg.info("Current status is {}".format(result['status']))
         lg.info("Waiting for scan of domain {} to complete.".format(domain))
         payload['startNew'] = 'off'
         while result['status'] != 'READY' and result['status'] != 'ERROR':
             lg.info("Sleeping for {} seconds.".format(SLEEP_TIME))
             time.sleep(SLEEP_TIME)
             result = api_request(payload_content=payload)
-            lg.info("Current status is {}, progress is {}".format(result['status'],
-                                                                  result['endpoints'][0]['progress']))
+            if 'endpoints' in result.keys():
+                lg.info("Current status is {}, progress is {}".format(result['status'],
+                                                                      result['endpoints'][0]['progress']))
+            else:
+                lg.info("Current status is {}".format(result['status']))
+
         if result['status'] == 'READY':
             lg.info("Scan of domain {} complete with grade {}".format(domain, result['endpoints'][0]['grade']))
             full_results[domain] = result
@@ -139,7 +151,8 @@ bodyHTML = template.render(domain_total=len(domains),
                            domain_success=len(domains_complete),
                            domain_failed=len(domains_failed),
                            domain_results=simplified_results,
-                           domain_list_failed=domains_failed
+                           domain_list_failed=domains_failed,
+                           domain_lookup=domains_lookup
                            )
 with open("EmailTemplate.txt.jinja2") as f:
     template = Template(f.read())
@@ -147,7 +160,8 @@ bodyTXT = template.render(domain_total=len(domains),
                           domain_success=len(domains_complete),
                           domain_failed=len(domains_failed),
                           domain_results=simplified_results,
-                          domain_list_failed=domains_failed
+                          domain_list_failed=domains_failed,
+                          domain_lookup=domains_lookup
                           )
 
 send_report(bodyHTML, bodyTXT)
