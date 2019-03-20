@@ -16,8 +16,6 @@ START_TIME = datetime.datetime.now()
 
 API = 'https://api.ssllabs.com/api/v3/analyze'
 
-# https://www.ssllabs.com/ssltest/analyze.html?d=www.dralom.eu&hideResults=on
-
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 lg = logging.getLogger()
 
@@ -165,3 +163,4 @@ bodyTXT = template.render(domain_total=len(domains),
                           )
 
 send_report(bodyHTML, bodyTXT)
+lg.info("Report email sent.")
