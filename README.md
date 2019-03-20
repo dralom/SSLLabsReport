@@ -14,7 +14,7 @@ Dockerfile configuration.
 ## Docker container
 
 You can pull the latest version of this container from Docker Hub by running
-`docker pull dralom/SSLLabsReport` or build your own by cloning this repo and running 
+`docker pull dralom/ssllabsreport` or build your own by cloning this repo and running 
 `docker build --label SSLLabsReport .`
 
 ### Configuration
@@ -39,7 +39,7 @@ docker run -d -it \
 -e "SMTORIGIN=reports@example.com" \
 -e "SMTPDESTINATION=itsupport@example.com" \
 -v /srv/qualysReport/domains.txt:/Main/SSLLabsReport/domains.txt \
-dralom/SSLLabsReport
+dralom/ssllabsreport
 ```
 
 This will set the environment variables needed to configure the script's SMTP
