@@ -11,4 +11,4 @@ RUN pip install -r requirements.txt
 
 RUN mkdir logs
 
-ENTRYPOINT ["python", "/Main/SSLLabsReport/SSLLabsReport.py"]
+RUN crontab cronConfig
