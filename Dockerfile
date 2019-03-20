@@ -10,6 +10,6 @@ WORKDIR /Main/SSLLabsReport
 
 RUN pip install -r requirements.txt
 
-RUN mkdir logs
+RUN mkdir /Main/logs
 
 RUN crontab cronConfig

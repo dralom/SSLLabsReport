@@ -15,7 +15,7 @@ Dockerfile configuration.
 
 You can pull the latest version of this container from Docker Hub by running
 `docker pull dralom/ssllabsreport` or build your own by cloning this repo and running 
-`docker build --label SSLLabsReport .`
+`docker build -t SSLLabsReport .`
 
 ### Configuration
 
@@ -36,7 +36,7 @@ docker run -d -it \
 --name qualysReport \
 -e "SMTPSERVER=smtp.example.com" \
 -e "SMTPPORT=25" \
--e "SMTORIGIN=reports@example.com" \
+-e "SMTPORIGIN=reports@example.com" \
 -e "SMTPDESTINATION=itsupport@example.com" \
 -v /srv/qualysReport/domains.txt:/Main/SSLLabsReport/domains.txt \
 dralom/ssllabsreport
@@ -46,6 +46,8 @@ This will set the environment variables needed to configure the script's SMTP
 connectivity. It will also map a local, persistent copy of the `domains.txt` file 
 to the location where the script expects the file: `/Main/SSLLabsReport/domains.txt`. 
 You may change the local value to where you store your copy of this file.
+
+Note: The current default cron job runs the report every Monday at 4AM server time.
 
 ## License
 
