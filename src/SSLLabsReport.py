@@ -141,8 +141,6 @@ simplified_results = {}
 for domain in domains_complete:
     simplified_results[domain] = full_results[domain]['endpoints'][0]['grade']
 
-# TODO: email report and docker
-
 with open("EmailTemplate.html.jinja2") as f:
     template = Template(f.read())
 bodyHTML = template.render(domain_total=len(domains),
