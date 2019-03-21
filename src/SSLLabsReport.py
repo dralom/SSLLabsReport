@@ -92,8 +92,8 @@ for domain in domains:
     payload = {
         'host': domain,
         'publish': 'off',
-        'startNew': 'off',
-        'fromCache': 'on',
+        'startNew': 'on',
+        'fromCache': 'off',
         'all': 'done'
     }
 
