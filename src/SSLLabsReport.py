@@ -5,12 +5,11 @@ import logging.config
 import os
 import smtplib
 import time
-
-from jinja2 import Template
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 import requests
+from jinja2 import Template
 
 START_TIME = datetime.datetime.now()
 
@@ -112,8 +111,12 @@ for domain in domains:
         domains_failed.append(domain)
     else:
         if 'endpoints' in result.keys():
+            if 'progress' in result['endpoints'][0].keys():
+                progress = result['endpoints'][0]['progress']
+            else:
+                progress = "unknown"
             lg.info("Current status is {}, progress is {}".format(result['status'],
-                                                                  result['endpoints'][0]['progress']))
+                                                                  progress))
         else:
             lg.info("Current status is {}".format(result['status']))
         lg.info("Waiting for scan of domain {} to complete.".format(domain))
@@ -123,8 +126,12 @@ for domain in domains:
             time.sleep(SLEEP_TIME)
             result = api_request(payload_content=payload)
             if 'endpoints' in result.keys():
+                if 'progress' in result['endpoints'][0].keys():
+                    progress = result['endpoints'][0]['progress']
+                else:
+                    progress = "unknown"
                 lg.info("Current status is {}, progress is {}".format(result['status'],
-                                                                      result['endpoints'][0]['progress']))
+                                                                      progress))
             else:
                 lg.info("Current status is {}".format(result['status']))
 
