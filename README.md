@@ -39,13 +39,16 @@ docker run -d -it \
 -e "SMTPORIGIN=reports@example.com" \
 -e "SMTPDESTINATION=itsupport@example.com" \
 -v /srv/qualysReport/domains.txt:/Main/SSLLabsReport/domains.txt \
+--restart unless-stopped \
 dralom/ssllabsreport
 ```
 
 This will set the environment variables needed to configure the script's SMTP
 connectivity. It will also map a local, persistent copy of the `domains.txt` file 
 to the location where the script expects the file: `/Main/SSLLabsReport/domains.txt`. 
-You may change the local value to where you store your copy of this file.
+You may change the local value to where you store your copy of this file. Additionally,
+the `--restart` option will ensure that the docker container restarts unless explicitly
+stopped.
 
 Note: The current default cron job runs the report every Monday at 4AM server time.
 
