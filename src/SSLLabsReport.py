@@ -91,8 +91,9 @@ for domain in domains:
     payload = {
         'host': domain,
         'publish': 'off',
-        'startNew': 'on',
-        'fromCache': 'off',
+        'startNew': 'off',
+        'fromCache': 'on',
+        'maxAge': 1,
         'all': 'done'
     }
 
@@ -136,9 +137,14 @@ for domain in domains:
                 lg.info("Current status is {}".format(result['status']))
 
         if result['status'] == 'READY':
-            lg.info("Scan of domain {} complete with grade {}".format(domain, result['endpoints'][0]['grade']))
-            full_results[domain] = result
-            domains_complete.append(domain)
+            if 'grade' in result['endpoints'][0].keys():
+                lg.info("Scan of domain {} complete with grade {}".format(domain, result['endpoints'][0]['grade']))
+                full_results[domain] = result
+                domains_complete.append(domain)
+            else:
+                message = "Scan of domain {} failed.".format(domain)
+                lg.exception(message)
+                domains_failed.append(domain)
         else:
             message = "Scan of domain {} failed.".format(domain)
             lg.exception(message)
