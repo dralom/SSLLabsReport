@@ -9,7 +9,9 @@ Results:
 {{key}} - {{domain_results[key]}} - Details: {{domain_lookup[key]}}
 {% endfor %}
 
+{% if domain_list_failed|length > 0 %}
 Failed domains:
 {% for d in domain_list_failed %}
-* {{d}}
+* {{d}} - Fail message: <{{domain_fail_message[d]}}> - {{domain_lookup[d]}}
 {% endfor %}
+{% endif %}

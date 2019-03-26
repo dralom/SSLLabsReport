@@ -29,12 +29,13 @@
     {% endfor %}
 </table>
 
+{% if domain_list_failed|length > 0 %}
 <h4>Failed domains</h4>
 <ul>
     {% for d in domain_list_failed %}
-    <li>{{d}}</li>
+    <li><a href="{{domain_lookup[d]}}">{{d}}</a> - Fail message: {{domain_fail_message[d]}}</li>
     {% endfor %}
 </ul>
-
+{% endif %}
 </body>
 </html>
