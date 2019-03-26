@@ -19,8 +19,8 @@ logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 lg = logging.getLogger()
 
 SLEEP_TIME = 15
-WAIT_TIME = 60
-MAX_RETRIES = 15
+WAIT_TIME = 15
+MAX_RETRIES = 60
 
 
 def send_report(messageHTML="", messageTXT=""):
@@ -80,6 +80,7 @@ domains = [x.strip() for x in lines]
 full_results = {}
 domains_complete = []
 domains_failed = []
+domains_fail_message = {}
 domains_lookup = {}
 
 for domain in domains:
@@ -93,13 +94,15 @@ for domain in domains:
         'publish': 'off',
         'startNew': 'off',
         'fromCache': 'on',
-        'maxAge': 1,
+        'maxAge': 2,
         'all': 'done'
     }
 
     result = api_request(payload_content=payload)
-    for i in range(0, 15):
+    for i in range(0, MAX_RETRIES):
         if result['status'] == 'ERROR':
+            if result['statusMessage'] == 'Unable to resolve domain name':
+                break
             lg.exception("Request returned ERROR status. Attempt {} of {}. Waiting {} seconds and trying again.".format(
                 i, MAX_RETRIES, WAIT_TIME))
             time.sleep(WAIT_TIME)
@@ -107,9 +110,17 @@ for domain in domains:
         else:
             break
     if result['status'] == 'ERROR':
-        message = "API ERROR! {} failed attempts for domain {}".format(MAX_RETRIES, domain)
-        lg.exception(message)
-        domains_failed.append(domain)
+        if i > 0:
+            message = "API ERROR! {} failed attempts for domain {}".format(i, domain)
+        else:
+            message = result['statusMessage']
+            lg.exception(message)
+            domains_failed.append(domain)
+            if 'errors' in result.keys():
+                lg.exception(result['errors'][0]['message'])
+                domains_fail_message[domain] = result['errors'][0]['message']
+            elif 'statusMessage' in result.keys():
+                domains_fail_message[domain] = result['statusMessage']
     else:
         if 'endpoints' in result.keys():
             if 'progress' in result['endpoints'][0].keys():
@@ -136,19 +147,20 @@ for domain in domains:
             else:
                 lg.info("Current status is {}".format(result['status']))
 
-        if result['status'] == 'READY':
-            if 'grade' in result['endpoints'][0].keys():
-                lg.info("Scan of domain {} complete with grade {}".format(domain, result['endpoints'][0]['grade']))
-                full_results[domain] = result
-                domains_complete.append(domain)
-            else:
-                message = "Scan of domain {} failed.".format(domain)
-                lg.exception(message)
-                domains_failed.append(domain)
+        if result['status'] == 'READY' and 'grade' in result['endpoints'][0].keys():
+            lg.info("Scan of domain {} complete with grade {}".format(domain, result['endpoints'][0]['grade']))
+            full_results[domain] = result
+            domains_complete.append(domain)
         else:
             message = "Scan of domain {} failed.".format(domain)
             lg.exception(message)
             domains_failed.append(domain)
+            if 'errors' in result.keys():
+                lg.exception(result['errors'][0]['message'])
+                domains_fail_message[domain] = result['errors'][0]['message']
+            elif 'statusMessage' in result.keys():
+                lg.exception(result['statusMessage'])
+                domains_fail_message[domain] = result['statusMessage']
 
 simplified_results = {}
 for domain in domains_complete:
@@ -161,7 +173,8 @@ bodyHTML = template.render(domain_total=len(domains),
                            domain_failed=len(domains_failed),
                            domain_results=simplified_results,
                            domain_list_failed=domains_failed,
-                           domain_lookup=domains_lookup
+                           domain_lookup=domains_lookup,
+                           domain_fail_message=domains_fail_message
                            )
 with open("EmailTemplate.txt.jinja2") as f:
     template = Template(f.read())
@@ -170,7 +183,8 @@ bodyTXT = template.render(domain_total=len(domains),
                           domain_failed=len(domains_failed),
                           domain_results=simplified_results,
                           domain_list_failed=domains_failed,
-                          domain_lookup=domains_lookup
+                          domain_lookup=domains_lookup,
+                          domain_fail_message=domains_fail_message
                           )
 
 send_report(bodyHTML, bodyTXT)
