@@ -101,8 +101,9 @@ for domain in domains:
     result = api_request(payload_content=payload)
     for i in range(0, MAX_RETRIES):
         if result['status'] == 'ERROR':
-            if result['statusMessage'] == 'Unable to resolve domain name':
-                break
+            if 'statusMessage' in result.keys():
+                if result['statusMessage'] == 'Unable to resolve domain name':
+                    break
             lg.exception("Request returned ERROR status. Attempt {} of {}. Waiting {} seconds and trying again.".format(
                 i, MAX_RETRIES, WAIT_TIME))
             time.sleep(WAIT_TIME)
@@ -113,13 +114,12 @@ for domain in domains:
         if i > 0:
             message = "API ERROR! {} failed attempts for domain {}".format(i, domain)
         else:
-            message = result['statusMessage']
-            lg.exception(message)
             domains_failed.append(domain)
             if 'errors' in result.keys():
                 lg.exception(result['errors'][0]['message'])
                 domains_fail_message[domain] = result['errors'][0]['message']
             elif 'statusMessage' in result.keys():
+                lg.exception(message)
                 domains_fail_message[domain] = result['statusMessage']
     else:
         if 'endpoints' in result.keys():
