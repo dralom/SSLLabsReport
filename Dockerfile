@@ -8,7 +8,9 @@ COPY ./src /Main/SSLLabsReport
 
 WORKDIR /Main/SSLLabsReport
 
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt && \
+    chmod +x SSLLabsReport.py && \
+    chmod +x start.sh
 
 RUN mkdir /Main/logs
 
