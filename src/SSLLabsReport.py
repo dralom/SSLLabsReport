@@ -13,9 +13,11 @@ from jinja2 import Template
 
 START_TIME = datetime.datetime.now()
 
+os.chdir("/Main/SSLLabsReport")
+
 API = 'https://api.ssllabs.com/api/v3/analyze'
 
-logging.config.fileConfig('/Main/SSLLabsReport/logging.conf', disable_existing_loggers=False)
+logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
 lg = logging.getLogger()
 
 SLEEP_TIME = 15
