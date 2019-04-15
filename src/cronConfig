@@ -1,2 +1,2 @@
-0 4 * * 1 /Main/SSLLabsReport/start.sh
+0 4 * * 1 /Main/SSLLabsReport/SSLLabsReport.py
 
