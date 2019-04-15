@@ -10,7 +10,6 @@ WORKDIR /Main/SSLLabsReport
 
 RUN pip install -r requirements.txt && \
     chmod +x SSLLabsReport.py && \
-    chmod +x start.sh && \
     dos2unix /Main/SSLLabsReport/cronConfig && \
     dos2unix /Main/SSLLabsReport/SSLLabsReport.py && \
     mkdir /Main/logs && \
