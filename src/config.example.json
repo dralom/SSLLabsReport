@@ -1,0 +1,8 @@
+{
+  "SMTPSERVER": "smtp.example.com",
+  "SMTPPORT": 25,
+  "SMTPORIGIN": "sender@example.com",
+  "SMTPDESTINATION": "infrastructure@example.com",
+  "SMTPUSER": "smtp",
+  "SMTPPASSWORD": "password"
+}

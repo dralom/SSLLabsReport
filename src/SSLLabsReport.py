@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import datetime
+import json
 import logging.config
 import os
 import smtplib
@@ -24,29 +25,37 @@ SLEEP_TIME = 15
 WAIT_TIME = 15
 MAX_RETRIES = 60
 
+CONFIG_FILE = os.path.join(os.getcwd(), "config.json")
+
+# Load config settings
+if os.path.isfile(CONFIG_FILE):
+    try:
+        with open(CONFIG_FILE) as f:
+            config = json.load(f)
+    except Exception as e:
+        lg.exception("Exception encountered loading config file: {}".format(e))
+
+    if not all(k in config.keys() for k in ("SMTPSERVER",
+                                             "SMTPPORT",
+                                             "SMTPORIGIN",
+                                             "SMTPDESTINATION")):
+        lg.exception("Config file does not contain minimum configuration infomrmation.\n"
+                     "Settings provided are: {}".format(config.keys()))
 
 def send_report(messageHTML="", messageTXT=""):
     try:
-        smtp_server = os.environ['SMTPSERVER']
-        smtp_port = os.environ['SMTPPORT']
-        smtp_origin = os.environ['SMTPORIGIN']
-        smtp_destination = os.environ['SMTPDESTINATION']
+        smtp_server = config['SMTPSERVER']
+        smtp_port = config['SMTPPORT']
+        smtp_origin = config['SMTPORIGIN']
+        smtp_destination = config['SMTPDESTINATION']
     except KeyError as e:
         lg.exception("Mandatory environment variable not defined: {}".format(e))
 
-    try:
-        smtp_user = os.environ['SMTPUSER']
-    except KeyError as e:
-        smtp_user = None
-
-    try:
-        smtp_password = os.environ['SMTPPASSWORD']
-    except KeyError as e:
-        smtp_password = None
-
     server = smtplib.SMTP(smtp_server, smtp_port)
-    if smtp_user is not None and smtp_password is not None:
-        server.login(smtp_user, smtp_password)
+
+    if all(k in config.keys() for k in ("SMTPUSER",
+                                        "SMTPPASSWORD")):
+        server.login(config["SMTPUSER"], config["SMTPPASSWORD"])
 
     msg = MIMEMultipart('alternative')
     msg['Subject'] = 'SSL Labs Report'
