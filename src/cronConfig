@@ -1,1 +1,1 @@
-0 4 * * 1 /Main/SSLLabsReport/SSLLabsReport.py
+0 4 * * 1 cd /Main/SSLLabsReport && /usr/local/bin/python /Main/SSLLabsReport/SSLLabsReport.py >> /Main/logs/script_output.log

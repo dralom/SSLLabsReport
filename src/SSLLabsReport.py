@@ -14,8 +14,6 @@ from jinja2 import Template
 
 START_TIME = datetime.datetime.now()
 
-os.chdir("/Main/SSLLabsReport")
-
 API = 'https://api.ssllabs.com/api/v3/analyze'
 
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
