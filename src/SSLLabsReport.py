@@ -84,7 +84,7 @@ def api_request(payload_content: dict = {}) -> dict:
 
 with open("domains.txt") as f:
     lines = f.readlines()
-domains = [x.strip() for x in lines]
+domains = [x.strip() for x in lines if x.strip() != '']
 
 full_results = {}
 domains_complete = []
