@@ -22,16 +22,16 @@ For use with an open SMTP relay (no authentication)
 
 ```
 docker run -d -it \
---name qualysReport \
--v /srv/qualysReport/domains.txt:/Main/SSLLabsReport/domains.txt \
--v /srv/qualysReport/config.json:/Main/SSLLabsReport/config.json \
+--name ssllabsreport \
+-v /srv/ssllabsreport/domains.txt:/srv/SSLLabsReport/domains.txt \
+-v /srv/ssllabsreport/config.json:/srv/SSLLabsReport/config.json \
 --restart unless-stopped \
 dralom/ssllabsreport
 ```
 
-This will mount the container in detatched mode, map a local, persistent copy of the `domains.txt` file to the location where the script expects the file: `/Main/SSLLabsReport/domains.txt`, and map a local, persistent copy of the `config.json` file to the location where the script expects the file: `/Main/SSLLabsReport/config.json`. You may change the local value to where you store your copy of this file. Additionally, the `--restart` option will ensure that the docker container restarts unless explicitly stopped.
+This will mount the container in detatched mode, map a local, persistent copy of the `domains.txt` file to the location where the script expects the file: `/srv/SSLLabsReport/domains.txt`, and map a local, persistent copy of the `config.json` file to the location where the script expects the file: `/srv/SSLLabsReport/config.json`. You may change the local value to where you store your copy of this file. Additionally, the `--restart` option will ensure that the docker container restarts unless explicitly stopped.
 
-Note: The current default cron job runs the report every Monday at 4AM UTC.
+Note: The current default cron job runs the report every Monday at 4AM UTC but can take some time (up to 15 minutes per domain.)
 
 ## License
 
