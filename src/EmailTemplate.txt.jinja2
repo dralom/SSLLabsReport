@@ -1,17 +1,17 @@
 SSL Labs Report
 
-Total number of domains scanned: {{domain_total}}
-Number of domains successfully scanned: {{domain_success}}
-Total number of domain scans failed: {{domain_failed}}
+Total number of domains scanned: {{domains_data.total}}
+Number of domains successfully scanned: {{domains_data.complete}}
+Total number of domain scans failed: {{domains_data.failed}}
 
 Results:
-{% for key in domain_results.keys() %}
-{{key}} - {{domain_results[key]}} - Details: {{domain_lookup[key]}}
+{% for domain in domains_data.domains.keys() %}
+{{domain}} - {{domains_data.domains[domain].grade}} - Supported Protocols: {{domains_data.domains[domain].protocols}} - Details: {{domains_data.domains[domain].lookup}} 
 {% endfor %}
 
-{% if domain_list_failed|length > 0 %}
+{% if domains_data.failed_list|length > 0 %}
 Failed domains:
-{% for d in domain_list_failed %}
-* {{d}} - Fail message: <{{domain_fail_message[d]}}> - {{domain_lookup[d]}}
+{% for domain in domains_data.failed_list %}
+* {{domain}} - Fail message: <{{domains_data.domains[domain].fail_message}}> - {{domains_data.domains[domain].lookup}}
 {% endfor %}
 {% endif %}

@@ -40,7 +40,12 @@ if os.path.isfile(CONFIG_FILE):
         lg.exception("Config file does not contain minimum configuration infomrmation.\n"
                      "Settings provided are: {}".format(config.keys()))
 
+
 def send_report(messageHTML="", messageTXT=""):
+    smtp_server = ""
+    smtp_port = ""
+    smtp_origin = ""
+    smtp_destination = ""
     try:
         smtp_server = config['SMTPSERVER']
         smtp_port = config['SMTPPORT']
@@ -69,6 +74,43 @@ def send_report(messageHTML="", messageTXT=""):
     server.sendmail(smtp_origin, smtp_destination, msg.as_string())
 
 
+def send_error_notification(errorMessage=''):
+    smtp_server = ""
+    smtp_port = ""
+    smtp_origin = ""
+    smtp_destination = ""
+    try:
+        smtp_server = config['SMTPSERVER']
+        smtp_port = config['SMTPPORT']
+        smtp_origin = config['SMTPORIGIN']
+        smtp_destination = config['SMTPDESTINATION']
+    except KeyError as e:
+        lg.exception("Mandatory environment variable not defined: {}".format(e))
+
+    server = smtplib.SMTP(smtp_server, smtp_port)
+
+    if all(k in config.keys() for k in ("SMTPUSER",
+                                        "SMTPPASSWORD")):
+        server.login(config["SMTPUSER"], config["SMTPPASSWORD"])
+
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = 'SSL Labs Report'
+    msg['From'] = smtp_origin
+    msg['To'] = smtp_destination
+
+    err_msg = "ERROR Encountered with SSL Labs Report script.\nError message: {}".format(errorMessage)
+    part1 = MIMEText(err_msg, 'plain')
+
+    msg.attach(part1)
+
+    server.sendmail(smtp_origin, smtp_destination, msg.as_string())
+
+
+def log_error(message):
+    lg.exception(message)
+    send_error_notification(message)
+
+
 def api_request(payload_content: dict = {}) -> dict:
     try:
         r = requests.get(API, params=payload_content)
@@ -86,15 +128,17 @@ with open("domains.txt") as f:
     lines = f.readlines()
 domains = [x.strip() for x in lines if x.strip() != '']
 
+domains_data = {}
 full_results = {}
 domains_complete = []
 domains_failed = []
-domains_fail_message = {}
-domains_lookup = {}
+
+domains_data['domains'] = {}
 
 for domain in domains:
-    domain_http_lookup = "https://www.ssllabs.com/ssltest/analyze.html?d={}&hideResults=on".format(domain)
-    domains_lookup[domain] = domain_http_lookup
+    domain_api_lookup = "https://www.ssllabs.com/ssltest/analyze.html?d={}&hideResults=on".format(domain)
+    domains_data['domains'][domain] = {}
+    domains_data['domains'][domain]['lookup'] = domain_api_lookup
 
 for domain in domains:
     lg.info("Initiating scan for domain: {}".format(domain))
@@ -108,28 +152,30 @@ for domain in domains:
     }
 
     result = api_request(payload_content=payload)
-    for i in range(0, MAX_RETRIES):
+    retry_attempt = 0
+    for retry_attempt in range(0, MAX_RETRIES):
         if result['status'] == 'ERROR':
             if 'statusMessage' in result.keys():
                 if result['statusMessage'] == 'Unable to resolve domain name':
                     break
             lg.exception("Request returned ERROR status. Attempt {} of {}. Waiting {} seconds and trying again.".format(
-                i, MAX_RETRIES, WAIT_TIME))
+                retry_attempt, MAX_RETRIES, WAIT_TIME))
             time.sleep(WAIT_TIME)
             result = api_request(payload_content=payload)
         else:
             break
     if result['status'] == 'ERROR':
-        if i > 0:
-            message = "API ERROR! {} failed attempts for domain {}".format(i, domain)
+        message = "Unknown failure."
+        if retry_attempt > 0:
+            message = "API ERROR! {} failed attempts for domain {}".format(retry_attempt, domain)
         else:
             domains_failed.append(domain)
             if 'errors' in result.keys():
                 lg.exception(result['errors'][0]['message'])
-                domains_fail_message[domain] = result['errors'][0]['message']
+                domains_data['domains'][domain]['fail_message'] = result['errors'][0]['message']
             elif 'statusMessage' in result.keys():
                 lg.exception(message)
-                domains_fail_message[domain] = result['statusMessage']
+                domains_data['domains'][domain]['fail_message'] = result['statusMessage']
     else:
         if 'endpoints' in result.keys():
             if 'progress' in result['endpoints'][0].keys():
@@ -159,6 +205,7 @@ for domain in domains:
         if result['status'] == 'READY' and 'grade' in result['endpoints'][0].keys():
             lg.info("Scan of domain {} complete with grade {}".format(domain, result['endpoints'][0]['grade']))
             full_results[domain] = result
+            domains_data['domains'][domain]['full_results'] = result
             domains_complete.append(domain)
         else:
             message = "Scan of domain {} failed.".format(domain)
@@ -166,35 +213,50 @@ for domain in domains:
             domains_failed.append(domain)
             if 'errors' in result.keys():
                 lg.exception(result['errors'][0]['message'])
-                domains_fail_message[domain] = result['errors'][0]['message']
+                domains_data['domains'][domain]['fail_message'] = result['errors'][0]['message']
             elif 'statusMessage' in result.keys():
                 lg.exception(result['statusMessage'])
-                domains_fail_message[domain] = result['statusMessage']
+                domains_data['domains'][domain]['fail_message'] = result['statusMessage']
+
+for domain in domains_complete:
+
+    domains_data['domains'][domain]['grade'] = full_results[domain]['endpoints'][0]['grade']
+    protocol_str = ""
+    for protocol in full_results[domain]['endpoints'][0]['details']['protocols']:
+        if protocol_str != "":
+            protocol_str += ", "
+        protocol_str += protocol['name'] + protocol['version']
+    domains_data['domains'][domain]['protocols'] = protocol_str
 
 simplified_results = {}
 for domain in domains_complete:
     simplified_results[domain] = full_results[domain]['endpoints'][0]['grade']
 
+csvAttachment = "Domain,Grade,SupportedProtocols"
+
+domains_data['complete_list'] = domains_complete
+domains_data['failed_list'] = domains_failed
+
+domains_data['complete'] = len(domains_complete)
+domains_data['failed'] = len(domains_failed)
+domains_data['total'] = len(domains)
+
+
 with open("EmailTemplate.html.jinja2") as f:
-    template = Template(f.read())
-bodyHTML = template.render(domain_total=len(domains),
-                           domain_success=len(domains_complete),
-                           domain_failed=len(domains_failed),
-                           domain_results=simplified_results,
-                           domain_list_failed=domains_failed,
-                           domain_lookup=domains_lookup,
-                           domain_fail_message=domains_fail_message
-                           )
+    try:
+        template = Template(f.read())
+        bodyHTML = template.render(domains_data=domains_data)
+    except Exception as e:
+        lg.exception("Error parsing email html template: {}".format(e))
+        exit(1)
+
 with open("EmailTemplate.txt.jinja2") as f:
-    template = Template(f.read())
-bodyTXT = template.render(domain_total=len(domains),
-                          domain_success=len(domains_complete),
-                          domain_failed=len(domains_failed),
-                          domain_results=simplified_results,
-                          domain_list_failed=domains_failed,
-                          domain_lookup=domains_lookup,
-                          domain_fail_message=domains_fail_message
-                          )
+    try:
+        template = Template(f.read())
+        bodyTXT = template.render(domains_data=domains_data)
+    except Exception as e:
+        lg.exception("Error parsing email txt template: {}".format(e))
+        exit(1)
 
 send_report(bodyHTML, bodyTXT)
 lg.info("Report email sent.")
