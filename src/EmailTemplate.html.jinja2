@@ -22,7 +22,7 @@
         <th>Grade</th>
         <th>Supported protocols</th>
     </tr>
-    {% for domain in domains_data.domains.keys() %}
+    {% for domain in domains_data.complete_list %}
     <tr>
         <th><a href="{{domains_data.domains[domain].lookup}}">{{domain}}</a></th>
         <th>{{domains_data.domains[domain].grade}}</th>
@@ -34,8 +34,8 @@
 {% if domains_data.failed_list|length > 0 %}
 <h4>Failed domains</h4>
 <ul>
-    {% for domain in domain_list_failed %}
-    <li><a href="{{domains_data.domains[domain].lookup}}">{{d}}</a> - Fail message: {{domains_data.domains[domain].fail_message}}</li>
+    {% for domain in domains_data.failed_list %}
+    <li><a href="{{domains_data.domains[domain].lookup}}">{{domain}}</a> - Fail message: {{domains_data.domains[domain].fail_message}}</li>
     {% endfor %}
 </ul>
 {% endif %}

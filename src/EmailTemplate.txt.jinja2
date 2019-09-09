@@ -5,7 +5,7 @@ Number of domains successfully scanned: {{domains_data.complete}}
 Total number of domain scans failed: {{domains_data.failed}}
 
 Results:
-{% for domain in domains_data.domains.keys() %}
+{% for domain in domains_data.complete_list %}
 {{domain}} - {{domains_data.domains[domain].grade}} - Supported Protocols: {{domains_data.domains[domain].protocols}} - Details: {{domains_data.domains[domain].lookup}} 
 {% endfor %}
 
